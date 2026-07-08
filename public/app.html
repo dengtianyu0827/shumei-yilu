@@ -415,39 +415,91 @@ a { color: inherit; text-decoration: none; }
 .result-detail h4 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
 
 /* ============================
-   PROFILE SCREEN
+   PROFILE SCREEN — 毕设高分版
    ============================ */
 .profile-header {
-  background: linear-gradient(160deg, #312E81 0%, #4F46E5 40%, #7C3AED 100%);
-  padding: 14px 18px 22px; position: relative; overflow: hidden;
+  background: linear-gradient(160deg, rgba(49,46,129,.85) 0%, rgba(79,70,229,.7) 40%, rgba(124,58,237,.6) 100%);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  padding: 20px 18px 28px; position: relative; overflow: hidden;
+}
+.profile-header::before {
+  content: ''; position: absolute; top: -60%; right: -40%;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,.06) 0%, transparent 70%);
 }
 .profile-header::after {
-  content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 14px;
-  background: var(--bg); border-radius: 12px 12px 0 0;
+  content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 16px;
+  background: var(--bg); border-radius: 14px 14px 0 0;
+}
+.profile-top-row {
+  display: flex; align-items: center; gap: 14px; position: relative; z-index: 1;
 }
 .profile-avatar {
-  width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,.2);
+  width: 56px; height: 56px; border-radius: 50%;
+  background: rgba(255,255,255,.15); backdrop-filter: blur(12px);
   display: flex; align-items: center; justify-content: center;
-  font-size: 24px; color: #fff; margin-bottom: 8px;
+  font-size: 28px; color: #fff; flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,.2);
 }
-.profile-header .ph-name { font-size: 18px; font-weight: 700; color: #fff; }
-.profile-header .ph-email { font-size: 12px; color: rgba(255,255,255,.7); }
-.stats-row { display: flex; gap: 12px; padding: 0 16px; margin-top: -10px; position: relative; z-index: 1; }
-.stat-card {
-  flex: 1; padding: 16px; border-radius: var(--radius-lg); background: var(--surface);
+.profile-info { flex: 1; min-width: 0; }
+.profile-info .ph-name { font-size: 18px; font-weight: 700; color: #fff; }
+.profile-info .ph-sign { font-size: 12px; color: rgba(255,255,255,.6); margin-top: 2px; font-style: italic; }
+.profile-level {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 50px; margin-top: 6px;
+  background: rgba(255,255,255,.15); backdrop-filter: blur(8px);
+  font-size: 11px; color: #FDE68A; font-weight: 600;
+}
+.profile-xp { margin-top: 14px; position: relative; z-index: 1; }
+.profile-xp .xp-label { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,.6); margin-bottom: 6px; }
+.profile-xp .xp-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,.15); overflow: hidden; }
+.profile-xp .xp-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, #FDE68A, #F59E0B); transition: width .6s ease; }
+
+/* Dashboard */
+.profile-dash { padding: 0 16px; margin-top: -8px; position: relative; z-index: 1; }
+.profile-dash .dash-main {
+  display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+  border-radius: var(--radius-lg); background: var(--surface);
+  box-shadow: var(--shadow); margin-bottom: 10px;
+}
+.dash-main .dm-icon { font-size: 32px; }
+.dash-main .dm-info { flex: 1; }
+.dash-main .dm-num { font-size: 28px; font-weight: 700; color: var(--primary); }
+.dash-main .dm-label { font-size: 12px; color: var(--text-secondary); }
+.dash-main .dm-arrow { color: var(--text-muted); font-size: 18px; }
+.dash-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.dash-mini {
+  flex: 1; padding: 14px; border-radius: var(--radius); background: var(--surface);
   box-shadow: var(--shadow-sm); text-align: center;
 }
-.stat-card .stat-num { font-size: 22px; font-weight: 700; color: var(--primary); }
-.stat-card .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-.menu-list { padding: 16px; }
+.dash-mini .dmn-num { font-size: 20px; font-weight: 700; color: var(--accent); }
+.dash-mini .dmn-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.dash-extra {
+  padding: 12px 16px; border-radius: var(--radius); background: var(--surface);
+  box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--text-secondary);
+}
+.dash-extra .de-num { font-weight: 700; color: var(--warning); }
+
+/* Menu Groups */
+.menu-section { padding: 0 16px; margin-bottom: 6px; }
+.menu-section .ms-title {
+  font-size: 12px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .04em; padding: 18px 4px 8px;
+}
+.menu-list { padding: 0 16px; }
 .menu-item {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px; background: var(--surface); border-radius: var(--radius);
-  margin-bottom: 8px; box-shadow: var(--shadow-sm); font-size: 14px; font-weight: 500;
+  padding: 13px 14px; background: var(--surface); border-radius: var(--radius);
+  margin-bottom: 6px; box-shadow: var(--shadow-sm); font-size: 14px; font-weight: 500;
 }
-.menu-item:active { background: var(--border-light); }
+.menu-item:active { background: var(--border-light); transform: scale(.98); }
 .menu-item .mi-left { display: flex; align-items: center; gap: 10px; }
-.menu-item .mi-icon { font-size: 20px; }
+.menu-item .mi-icon { font-size: 18px; width: 22px; text-align: center; }
+.menu-item .mi-badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 50px;
+  background: var(--primary-light); color: var(--primary); font-weight: 600;
+}
 
 /* ===== Spacing utils ===== */
 .px-4 { padding-left: 16px; padding-right: 16px; }
@@ -1153,26 +1205,65 @@ let isLoggedIn = false;
 function renderProfile() {
   return `
     <div class="page-content">
+      <!-- Header -->
       <div class="profile-header">
-        <div class="profile-avatar">👤</div>
-        <div class="ph-name">${isLoggedIn ? '数媒学习者' : '未登录'}</div>
-        <div class="ph-email">${isLoggedIn ? 'learner@shumei.art' : '登录以记录学习进度'}</div>
+        <div class="profile-top-row">
+          <div class="profile-avatar" onclick="showToast('编辑个人资料')">👤</div>
+          <div class="profile-info">
+            <div class="ph-name">${isLoggedIn ? '数媒学习者' : '未登录'}</div>
+            <div class="ph-sign">${isLoggedIn ? '正在探索数字艺术史 ✨' : '登录解锁完整功能'}</div>
+            ${isLoggedIn ? `<div class="profile-level">⭐ 数媒学徒 Lv.1</div>` : ''}
+          </div>
+        </div>
+        ${isLoggedIn ? `
+        <div class="profile-xp">
+          <div class="xp-label"><span>学习总进度</span><span>32% — 离 Lv.2 还差 68 经验</span></div>
+          <div class="xp-bar"><div class="xp-fill" style="width:32%"></div></div>
+        </div>` : ''}
       </div>
+
       ${!isLoggedIn ? `
       <div style="padding:0 16px;margin-top:-8px;position:relative;z-index:1">
         <button class="btn-primary" onclick="navigateTo('login');document.getElementById('screen-main').classList.remove('active')" style="margin-bottom:8px">登录 / 注册</button>
       </div>` : ''}
-      <div class="stats-row">
-        <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">学习模块</div></div>
-        <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">完成测验</div></div>
-        <div class="stat-card"><div class="stat-num">80%</div><div class="stat-label">最高分</div></div>
-      </div>
+
+      <!-- Dashboard -->
+      ${isLoggedIn ? `
+      <div class="profile-dash">
+        <div class="dash-main" onclick="showToast('查看学习进度详情')">
+          <span class="dm-icon">📊</span>
+          <div class="dm-info"><div class="dm-num">32%</div><div class="dm-label">学习总进度 · 核心指标</div></div>
+          <span class="dm-arrow">›</span>
+        </div>
+        <div class="dash-row">
+          <div class="dash-mini"><div class="dmn-num">6</div><div class="dmn-label">已解锁模块</div></div>
+          <div class="dash-mini"><div class="dmn-num">3</div><div class="dmn-label">完成测验</div></div>
+        </div>
+        <div class="dash-extra">⏱️ 累计学习时长 <span class="de-num">12.5</span> 小时</div>
+      </div>` : ''}
+
+      <!-- 菜单分组 -->
+      ${isLoggedIn ? `
+      <div class="menu-section"><div class="ms-title">📚 我的学习资产</div></div>
       <div class="menu-list">
         <div class="menu-item" onclick="showToast('即将上线')"><span class="mi-left"><span class="mi-icon">📝</span>学习记录</span><span>›</span></div>
-        <div class="menu-item" onclick="showToast('即将上线')"><span class="mi-left"><span class="mi-icon">⭐</span>我的收藏</span><span>›</span></div>
         <div class="menu-item" onclick="showToast('即将上线')"><span class="mi-left"><span class="mi-icon">📊</span>学习进度</span><span>›</span></div>
+        <div class="menu-item" onclick="showToast('即将上线')"><span class="mi-left"><span class="mi-icon">⭐</span>我的收藏</span><span>›</span></div>
+      </div>
+
+      <div class="menu-section"><div class="ms-title">🏆 数媒成就</div></div>
+      <div class="menu-list">
+        <div class="menu-item" onclick="showToast('即将上线')"><span class="mi-left"><span class="mi-icon">🎖️</span>我的徽章</span><span class="mi-badge">3枚</span><span>›</span></div>
+        <div class="menu-item" onclick="showToast('即将上线')"><span class="mi-left"><span class="mi-icon">📜</span>我的证书</span><span class="mi-badge">NEW</span><span>›</span></div>
+      </div>` : ''}
+
+      <div class="menu-section"><div class="ms-title">⚙️ 应用设置</div></div>
+      <div class="menu-list">
+        <div class="menu-item" onclick="showToast('即将上线')"><span class="mi-left"><span class="mi-icon">🔔</span>消息通知</span><span>›</span></div>
+        <div class="menu-item" onclick="showToast('即将上线')"><span class="mi-left"><span class="mi-icon">🗑️</span>清除缓存</span><span>›</span></div>
         <div class="menu-item" onclick="showToast('即将上线')"><span class="mi-left"><span class="mi-icon">ℹ️</span>关于数媒艺路</span><span>›</span></div>
-        ${isLoggedIn ? `<div class="menu-item" onclick="isLoggedIn=false;switchTab('profile');showToast('已退出登录')"><span class="mi-left"><span class="mi-icon">🚪</span>退出登录</span><span>›</span></div>` : ''}
+        <div class="menu-item" onclick="openModal('agreement')"><span class="mi-left"><span class="mi-icon">🔒</span>隐私协议</span><span>›</span></div>
+        ${isLoggedIn ? `<div class="menu-item" onclick="isLoggedIn=false;switchTab('profile');showToast('已退出登录')" style="color:var(--error)"><span class="mi-left"><span class="mi-icon">🚪</span>退出登录</span><span>›</span></div>` : ''}
       </div>
     </div>`;
 }
