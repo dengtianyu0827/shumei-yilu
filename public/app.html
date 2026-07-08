@@ -241,9 +241,11 @@ a { color: inherit; text-decoration: none; }
 .feature-card {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 16px 8px; border-radius: var(--radius-lg); background: var(--surface);
-  box-shadow: var(--shadow-sm); transition: all .2s; text-align: center;
+  box-shadow: var(--shadow-sm); transition: all .25s; text-align: center;
+  border: 1px solid transparent;
 }
-.feature-card:active { transform: scale(.96); }
+.feature-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--border); }
+.feature-card:active { transform: scale(.95); }
 .feature-card .fc-icon {
   width: 44px; height: 44px; border-radius: var(--radius);
   display: flex; align-items: center; justify-content: center; font-size: 22px;
@@ -254,10 +256,11 @@ a { color: inherit; text-decoration: none; }
 .recommend-list { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
 .rec-card {
   display: flex; gap: 14px; padding: 14px; border-radius: var(--radius-lg);
-  background: var(--surface); box-shadow: var(--shadow-sm);
-  transition: all .2s; align-items: center;
+  background: var(--surface); box-shadow: var(--shadow-sm); border: 1px solid transparent;
+  transition: all .25s; align-items: center;
 }
-.rec-card:active { transform: scale(.98); }
+.rec-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-lg); border-color: var(--border); }
+.rec-card:active { transform: scale(.97); }
 .rec-card .rec-icon {
   width: 52px; height: 52px; border-radius: var(--radius); flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; font-size: 26px;
@@ -273,9 +276,13 @@ a { color: inherit; text-decoration: none; }
 .module-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px; }
 .module-card {
   padding: 20px 14px; border-radius: var(--radius-lg); background: var(--surface);
-  box-shadow: var(--shadow-sm); transition: all .2s; position: relative; overflow: hidden;
+  box-shadow: var(--shadow-sm); transition: all .25s; position: relative; overflow: hidden;
+  border: 1px solid transparent;
 }
-.module-card:active { transform: scale(.97); }
+.module-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--border); }
+.module-card:active { transform: scale(.96); }
+.module-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--primary), var(--accent)); transform: scaleX(0); transition: transform .3s; }
+.module-card:hover::before { transform: scaleX(1); }
 .module-card .mc-icon { font-size: 32px; margin-bottom: 10px; }
 .module-card .mc-title { font-size: 15px; font-weight: 600; color: var(--text); }
 .module-card .mc-desc { font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
@@ -448,6 +455,35 @@ a { color: inherit; text-decoration: none; }
 .mt-4 { margin-top: 16px; }
 .mb-2 { margin-bottom: 8px; }
 .mb-4 { margin-bottom: 16px; }
+
+/* ===== Carousel ===== */
+.carousel {
+  position: relative; margin: 8px 16px 0; border-radius: var(--radius-lg);
+  overflow: hidden; height: 140px;
+}
+.carousel-slides { display: flex; height: 100%; transition: transform .5s ease; }
+.carousel-slide {
+  min-width: 100%; height: 100%; display: flex; align-items: center;
+  padding: 20px; position: relative; overflow: hidden;
+}
+.carousel-slide::after {
+  content: ''; position: absolute; top: -30%; right: -10%;
+  width: 100px; height: 100px; border-radius: 50%;
+  background: rgba(255,255,255,.08);
+}
+.carousel-slide .cs-icon { font-size: 40px; margin-right: 14px; position: relative; z-index: 1; flex-shrink: 0; }
+.carousel-slide .cs-text { position: relative; z-index: 1; }
+.carousel-slide .cs-title { font-size: 16px; font-weight: 700; color: #fff; }
+.carousel-slide .cs-desc { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 4px; line-height: 1.5; }
+.carousel-dots {
+  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 6px; z-index: 2;
+}
+.carousel-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.4);
+  transition: all .3s;
+}
+.carousel-dot.active { width: 18px; border-radius: 3px; background: #fff; }
 
 /* ===== Toast ===== */
 .toast {
@@ -664,17 +700,44 @@ function switchTab(tab) {
   document.querySelector(`.tab-item[data-tab="${tab}"]`)?.classList.add('active');
   const main = document.getElementById('main-content');
   switch(tab) {
-    case 'home': main.innerHTML = renderHome(); break;
-    case 'explore': main.innerHTML = renderExplore(); break;
-    case 'quiz': main.innerHTML = renderQuizHome(); break;
-    case 'profile': main.innerHTML = renderProfile(); break;
+    case 'home': main.innerHTML = renderHome(); startCarousel(); break;
+    case 'explore': main.innerHTML = renderExplore(); stopCarousel(); break;
+    case 'quiz': main.innerHTML = renderQuizHome(); stopCarousel(); break;
+    case 'profile': main.innerHTML = renderProfile(); stopCarousel(); break;
   }
   document.getElementById('screen-main').classList.add('active');
   document.getElementById('screen-splash')?.classList.remove('active');
   document.getElementById('screen-login')?.classList.remove('active');
-  // Scroll to top
   const pc = document.querySelector('#main-content .page-content');
   if (pc) pc.scrollTop = 0;
+}
+
+// ============================
+// CAROUSEL
+// ============================
+let carouselTimer = null;
+let carouselIndex = 0;
+const carouselTotal = 4;
+
+function startCarousel() {
+  stopCarousel();
+  carouselIndex = 0;
+  updateCarousel();
+  carouselTimer = setInterval(() => {
+    carouselIndex = (carouselIndex + 1) % carouselTotal;
+    updateCarousel();
+  }, 5000);
+}
+
+function stopCarousel() {
+  if (carouselTimer) { clearInterval(carouselTimer); carouselTimer = null; }
+}
+
+function updateCarousel() {
+  const slides = document.getElementById('carouselSlides');
+  const dots = document.querySelectorAll('#carouselDots .carousel-dot');
+  if (slides) slides.style.transform = `translateX(-${carouselIndex * 100}%)`;
+  dots.forEach((d, i) => d.classList.toggle('active', i === carouselIndex));
 }
 
 // ============================
@@ -683,12 +746,40 @@ function switchTab(tab) {
 function renderHome() {
   return `
     <div class="page-content">
-      <div style="padding:12px 16px 0">
-        <div class="search-box" onclick="openSearch()" style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--border-light);border-radius:50px;color:var(--text-muted);font-size:14px;cursor:pointer;margin-bottom:4px">
+      <!-- Carousel -->
+      <div class="carousel" id="homeCarousel">
+        <div class="carousel-slides" id="carouselSlides">
+          <div class="carousel-slide" style="background:linear-gradient(135deg,#4F46E5,#7C3AED)">
+            <span class="cs-icon">🎨</span>
+            <div class="cs-text"><div class="cs-title">数字媒体艺术</div><div class="cs-desc">技术与艺术深度融合的交叉学科</div></div>
+          </div>
+          <div class="carousel-slide" style="background:linear-gradient(135deg,#7C3AED,#EC4899)">
+            <span class="cs-icon">🤖</span>
+            <div class="cs-text"><div class="cs-title">AI 生成艺术时代</div><div class="cs-desc">探索人工智能与创作的无限可能</div></div>
+          </div>
+          <div class="carousel-slide" style="background:linear-gradient(135deg,#0891B2,#10B981)">
+            <span class="cs-icon">🥽</span>
+            <div class="cs-text"><div class="cs-title">VR/AR 沉浸体验</div><div class="cs-desc">虚拟与现实边界的消融</div></div>
+          </div>
+          <div class="carousel-slide" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">
+            <span class="cs-icon">🏛️</span>
+            <div class="cs-text"><div class="cs-title">teamLab 无界</div><div class="cs-desc">全球最受欢迎的数字艺术博物馆</div></div>
+          </div>
+        </div>
+        <div class="carousel-dots" id="carouselDots">
+          <span class="carousel-dot active"></span>
+          <span class="carousel-dot"></span>
+          <span class="carousel-dot"></span>
+          <span class="carousel-dot"></span>
+        </div>
+      </div>
+      <!-- Search -->
+      <div style="padding:8px 16px 0">
+        <div onclick="openSearch()" style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--border-light);border-radius:50px;color:var(--text-muted);font-size:14px;cursor:pointer">
           🔍 搜索数媒知识、案例、术语...
         </div>
       </div>
-      <div class="section-header" style="padding-top:4px"><h3>学习模块</h3></div>
+      <div class="section-header" style="padding-top:8px"><h3>学习模块</h3></div>
       <div class="feature-grid">
         ${[
           {icon:'💡',bg:'#EEF2FF',label:'认识数媒',id:'concepts'},
