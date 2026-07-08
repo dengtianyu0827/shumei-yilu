@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数媒艺路 — 数字媒体艺术导航</title>
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --color-primary: #4F46E5;
+  --color-primary-dark: #4338CA;
+  --color-primary-light: #EEF2FF;
+  --color-warm: #F59E0B;
+  --color-warm-light: #FFFBF0;
+  --color-bg: #FAFAF8;
+  --color-surface: #FFFFFF;
+  --color-text: #1E293B;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+  --color-border: #E2E8F0;
+  --color-border-light: #F1F5F9;
+  --sidebar-width: 240px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-full: 999px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.05);
+  --shadow-hover: 0 12px 32px rgba(0,0,0,.1);
+  --transition: 220ms cubic-bezier(.4,0,.2,1);
+  --transition-spring: 350ms cubic-bezier(.34,1.56,.64,1);
+}
+
+/* ===== Reset & Base ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+body {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  font-size: 15px; line-height: 1.6; color: var(--color-text);
+  background:
+    /* 点阵粒子层 — 象征数字像素、数据脉络 */
+    radial-gradient(circle at 25% 25%, rgba(79,70,229,.07) 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, rgba(124,58,237,.05) 1.5px, transparent 1.5px),
+    /* 弥散光斑 — 低饱和蓝紫柔化渐变 */
+    radial-gradient(ellipse at 15% 10%, rgba(79,70,229,.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 30%, rgba(124,58,237,.03) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 70%, rgba(79,70,229,.02) 0%, transparent 40%),
+    /* 纯色底 */
+    var(--color-bg);
+  background-size:
+    28px 28px,
+    32px 32px,
+    100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  -webkit-font-smoothing: antialiased;
+}
+a { text-decoration: none; color: inherit; }
+button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
+
+/* ===== Layout ===== */
+.app-layout { display: flex; min-height: 100vh; }
+
+/* ===== Sidebar ===== */
+.sidebar {
+  position: fixed; top: 0; left: 0; z-index: 50;
+  width: var(--sidebar-width); height: 100vh;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  display: flex; flex-direction: column;
+  transition: transform var(--transition-spring);
+}
+.sidebar-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--color-border-light);
+  background: linear-gradient(to bottom, rgba(79,70,229,.03), transparent);
+}
+.sidebar-brand .logo {
+  width: 38px; height: 38px; border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  box-shadow: 0 4px 12px rgba(79,70,229,.25);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 19px; font-weight: 700;
+}
+.sidebar-brand .name { font-size: 17px; font-weight: 700; color: var(--color-text); letter-spacing: .02em; }
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 14px 10px; }
+.sidebar-nav .nav-section {
+  font-size: 11px; letter-spacing: .06em;
+  color: var(--color-text-muted); padding: 6px 14px 8px; font-weight: 600;
+  text-transform: uppercase;
+}
+.sidebar-nav .nav-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 10px 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 14px; font-weight: 500; color: var(--color-text-secondary);
+  transition: all var(--transition); text-align: left;
+  border-left: 3px solid transparent;
+  position: relative;
+}
+.sidebar-nav .nav-item:hover {
+  background: var(--color-primary-light); color: var(--color-primary);
+  border-left-color: rgba(79,70,229,.3);
+}
+.sidebar-nav .nav-item.active {
+  background: var(--color-primary-light); color: var(--color-primary);
+  font-weight: 600; border-left-color: var(--color-primary);
+}
+.sidebar-nav .nav-item .nav-icon { font-size: 18px; width: 22px; text-align: center; flex-shrink: 0; }
+
+/* ===== Overlay (mobile) ===== */
+.sidebar-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 49;
+  opacity: 0; pointer-events: none; transition: opacity 300ms ease;
+}
+.sidebar-overlay.show { opacity: 1; pointer-events: auto; }
+
+/* ===== Main Content ===== */
+.main-content { flex: 1; margin-left: var(--sidebar-width); min-width: 0; }
+
+/* ===== Header / Search ===== */
+.top-bar {
+  position: sticky; top: 0; z-index: 30;
+  background: rgba(255,255,255,.85); backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border-bottom: 1px solid var(--color-border);
+  padding: 14px 24px; display: flex; align-items: center; gap: 12px;
+}
+.hamburger {
+  display: none; width: 40px; height: 40px; border-radius: var(--radius-sm);
+  align-items: center; justify-content: center; flex-shrink: 0;
+  transition: background var(--transition);
+}
+.hamburger:hover { background: var(--color-border-light); }
+.hamburger svg { width: 22px; height: 22px; stroke: var(--color-text); }
+
+.search-wrapper {
+  flex: 1; display: flex; max-width: 600px; position: relative;
+  background: var(--color-border-light); border-radius: var(--radius-full);
+  border: 1px solid transparent; transition: all var(--transition);
+  overflow: hidden;
+}
+.search-wrapper:focus-within {
+  background: var(--color-surface); border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(79,70,229,.1);
+}
+.engine-toggle {
+  display: flex; align-items: center; gap: 5px;
+  padding: 9px 16px; font-size: 13px; font-weight: 500;
+  color: var(--color-text-secondary); white-space: nowrap;
+  transition: all var(--transition);
+  border-right: 1px solid var(--color-border);
+}
+.engine-toggle:hover { background: var(--color-border); color: var(--color-text); }
+.engine-toggle .caret { font-size: 10px; transition: transform var(--transition); }
+.engine-dropdown {
+  display: none; position: absolute; top: calc(100% + 6px); left: 0;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-hover);
+  z-index: 40; min-width: 130px; overflow: hidden; padding: 4px;
+}
+.engine-dropdown.show { display: block; }
+.engine-option {
+  display: block; width: 100%; padding: 8px 14px; font-size: 13px; text-align: left;
+  border-radius: var(--radius-sm); transition: all var(--transition);
+}
+.engine-option:hover { background: var(--color-primary-light); color: var(--color-primary); }
+.search-input {
+  flex: 1; padding: 9px 16px; border: none; font-size: 14px;
+  outline: none; background: transparent;
+}
+.search-input::placeholder { color: var(--color-text-muted); }
+.search-btn {
+  margin-left: 4px; padding: 9px 22px; border-radius: var(--radius-full);
+  background: var(--color-primary); color: #fff; font-size: 14px; font-weight: 500;
+  transition: all var(--transition); white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(79,70,229,.2);
+}
+.search-btn:hover { background: var(--color-primary-dark); box-shadow: 0 4px 16px rgba(79,70,229,.35); transform: translateY(-1px); }
+.search-btn:active { transform: scale(.97); }
+
+/* ===== Content Area ===== */
+.content-area { padding: 28px 32px 64px; max-width: 900px; }
+
+/* ===== Top Banner (流体渐变光效) ===== */
+.content-banner {
+  position: relative; margin-bottom: 36px; border-radius: var(--radius-lg);
+  padding: 32px 28px; overflow: hidden;
+  background: linear-gradient(135deg, #EEF2FF 0%, #E8E5FF 40%, #F3E8FF 100%);
+}
+.content-banner::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    /* 漂浮几何光点 */
+    radial-gradient(circle at 10% 20%, rgba(79,70,229,.15) 0%, transparent 30%),
+    radial-gradient(circle at 90% 30%, rgba(124,58,237,.12) 0%, transparent 25%),
+    radial-gradient(circle at 50% 70%, rgba(79,70,229,.08) 0%, transparent 35%),
+    /* 微弱发光线条 */
+    radial-gradient(ellipse at 30% 50%, rgba(79,70,229,.06) 0%, transparent 60%);
+  z-index: 0;
+}
+.content-banner::after {
+  content: ''; position: absolute; top: 30%; right: 5%;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, rgba(124,58,237,.08) 0%, transparent 70%);
+  border-radius: 50%; z-index: 0;
+}
+.content-banner > * { position: relative; z-index: 1; }
+.content-banner h2 {
+  font-size: 22px; font-weight: 700; color: var(--color-text); margin-bottom: 6px;
+}
+.content-banner p {
+  font-size: 14px; color: var(--color-text-secondary); line-height: 1.7;
+}
+
+/* ===== Category Section ===== */
+.category-section { margin-bottom: 56px; padding-top: 16px; }
+.category-title {
+  font-size: 24px; font-weight: 700; color: var(--color-text);
+  margin-bottom: 6px; display: flex; align-items: center; gap: 10px;
+  letter-spacing: .02em;
+}
+.category-title .cat-icon { font-size: 28px; }
+.category-desc { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 18px; line-height: 1.7; }
+
+/* ===== Section Decorative Backgrounds ===== */
+.category-section {
+  position: relative;
+  border-radius: var(--radius-lg);
+  padding: 20px 24px 24px;
+  margin-left: -12px; margin-right: -12px;
+}
+
+/* 渐变分区 — 交替使用浅色块增强视觉节奏 */
+.category-section:nth-child(odd) {
+  background: linear-gradient(135deg, rgba(79,70,229,.015) 0%, rgba(255,255,255,.6) 40%, rgba(124,58,237,.01) 100%);
+}
+.category-section:nth-child(even) {
+  background: linear-gradient(225deg, rgba(124,58,237,.012) 0%, rgba(255,255,255,.5) 40%, rgba(79,70,229,.015) 100%);
+}
+
+/* ---- 认识数媒 — 几何切片块面 ---- */
+#concepts::before {
+  content: ''; position: absolute; top: 12px; right: 16px;
+  width: 80px; height: 80px;
+  background: linear-gradient(135deg, rgba(79,70,229,.06), rgba(124,58,237,.03));
+  border-radius: 20px; transform: rotate(15deg); z-index: 0; pointer-events: none;
+}
+#concepts::after {
+  content: ''; position: absolute; bottom: 20px; left: 20px;
+  width: 50px; height: 50px;
+  border: 2px dashed rgba(79,70,229,.08);
+  border-radius: 12px; transform: rotate(-10deg); z-index: 0; pointer-events: none;
+}
+
+/* ---- 发展时间轴 — 节点轨迹线条 ---- */
+#timeline::before {
+  content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(79,70,229,.1) 20%, rgba(124,58,237,.15) 50%, rgba(79,70,229,.1) 80%, transparent);
+  z-index: 0; pointer-events: none;
+}
+#timeline::after {
+  content: ''; position: absolute; top: calc(50% - 3px); left: 10%;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(79,70,229,.15); z-index: 0; pointer-events: none;
+  box-shadow:
+    80px 0 0 rgba(124,58,237,.12),
+    160px 0 0 rgba(79,70,229,.1),
+    240px 0 0 rgba(124,58,237,.08),
+    320px 0 0 rgba(79,70,229,.06),
+    400px 0 0 rgba(124,58,237,.04);
+}
+
+/* ---- 艺术形式 — 流动渐变波纹 ---- */
+#art-forms::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(79,70,229,.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 60%, rgba(124,58,237,.04) 0%, transparent 50%),
+    radial-gradient(circle at 50% 85%, rgba(79,70,229,.03) 0%, transparent 40%);
+  border-radius: var(--radius-lg);
+}
+
+/* ---- 代表案例 — 深炭蓝紫暗底沉浸感 ---- */
+#cases {
+  background: linear-gradient(160deg, #1E1B4B 0%, #1E293B 40%, #0F172A 100%) !important;
+  color: #E2E8F0;
+}
+#cases .category-title { color: #F1F5F9; }
+#cases .category-desc { color: #94A3B8; }
+#cases::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(79,70,229,.15) 0%, transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(124,58,237,.1) 0%, transparent 35%),
+    /* 微弱发光粒子 */
+    radial-gradient(circle at 15% 40%, rgba(255,255,255,.04) 1px, transparent 1px),
+    radial-gradient(circle at 60% 25%, rgba(255,255,255,.03) 1px, transparent 1px),
+    radial-gradient(circle at 85% 55%, rgba(255,255,255,.05) 1px, transparent 1px),
+    radial-gradient(circle at 35% 75%, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 50px 50px, 60px 60px, 40px 40px, 55px 55px;
+  border-radius: var(--radius-lg);
+}
+#cases .sub-tab { background: rgba(255,255,255,.08); color: #CBD5E1; }
+#cases .sub-tab:hover { background: rgba(255,255,255,.14); color: #F1F5F9; }
+#cases .sub-tab.active { background: var(--color-primary); color: #fff; }
+#cases .card { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.08); backdrop-filter: blur(8px); }
+#cases .card:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.15); }
+#cases .card-title { color: #F1F5F9; }
+#cases .card-desc { color: #94A3B8; }
+#cases .card-arrow { color: #64748B; }
+
+/* ---- 技术词典 — 细密网格+全息渐变暗底 ---- */
+#glossary {
+  background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%) !important;
+}
+#glossary .category-title { color: #F1F5F9; }
+#glossary .category-desc { color: #94A3B8; }
+#glossary::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    /* 网格线 */
+    repeating-linear-gradient(0deg, rgba(79,70,229,.06) 0px, rgba(79,70,229,.06) 1px, transparent 1px, transparent 24px),
+    repeating-linear-gradient(90deg, rgba(79,70,229,.06) 0px, rgba(79,70,229,.06) 1px, transparent 1px, transparent 24px),
+    /* 全息渐变 */
+    linear-gradient(135deg, rgba(79,70,229,.08) 0%, transparent 30%, rgba(124,58,237,.06) 70%, transparent 100%);
+  border-radius: var(--radius-lg);
+}
+#glossary .sub-tab { background: rgba(255,255,255,.08); color: #CBD5E1; }
+#glossary .sub-tab:hover { background: rgba(255,255,255,.14); color: #F1F5F9; }
+#glossary .sub-tab.active { background: var(--color-primary); color: #fff; }
+#glossary .card { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.08); backdrop-filter: blur(8px); }
+#glossary .card:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.15); }
+#glossary .card-title { color: #F1F5F9; }
+#glossary .card-desc { color: #94A3B8; }
+#glossary .card-arrow { color: #64748B; }
+
+/* ---- 创作流程 — 细线光带装饰 ---- */
+#creation::before {
+  content: ''; position: absolute; bottom: 0; left: 10%; right: 10%; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(79,70,229,.12), rgba(124,58,237,.15), rgba(79,70,229,.12), transparent);
+  z-index: 0; pointer-events: none;
+  border-radius: 1px;
+}
+
+/* 保证分区内容在装饰层上方 */
+.category-section > * { position: relative; z-index: 1; }
+
+/* ===== Sub Tabs (pill style) ===== */
+.sub-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+.sub-tab {
+  padding: 7px 18px; border-radius: var(--radius-full);
+  font-size: 13px; font-weight: 500; color: var(--color-text-secondary);
+  background: var(--color-border-light);
+  transition: all var(--transition);
+  -webkit-tap-highlight-color: transparent;
+}
+.sub-tab:hover { background: var(--color-primary-light); color: var(--color-primary); }
+.sub-tab.active { background: var(--color-primary); color: #fff; font-weight: 600; box-shadow: 0 2px 8px rgba(79,70,229,.25); }
+.sub-tab:active { transform: scale(.96); }
+
+/* ===== Card Grid ===== */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.card {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 20px; border-radius: var(--radius-md);
+  background: var(--color-surface); border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm); cursor: pointer;
+  transition: all var(--transition);
+  -webkit-tap-highlight-color: transparent;
+}
+.card:hover {
+  box-shadow: var(--shadow-hover); border-color: transparent;
+  transform: translateY(-4px);
+}
+.card:active { transform: scale(.98); }
+.card-icon {
+  width: 48px; height: 48px; border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0; position: relative;
+}
+.card-icon::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 14px;
+  opacity: .4; z-index: -1; transition: opacity var(--transition);
+}
+.card:hover .card-icon::after { opacity: .7; }
+.card-icon.blue   { background: #EEF2FF; color: #4F46E5; }
+.card-icon.blue::after   { background: #C7D2FE; }
+.card-icon.purple { background: #F3E8FF; color: #9333EA; }
+.card-icon.purple::after { background: #D8B4FE; }
+.card-icon.green  { background: #ECFDF5; color: #059669; }
+.card-icon.green::after  { background: #A7F3D0; }
+.card-icon.amber  { background: #FFFBEB; color: #D97706; }
+.card-icon.amber::after  { background: #FDE68A; }
+.card-icon.rose   { background: #FFF1F2; color: #E11D48; }
+.card-icon.rose::after   { background: #FECDD3; }
+.card-icon.cyan   { background: #ECFEFF; color: #0891B2; }
+.card-icon.cyan::after   { background: #A5F3FC; }
+.card-icon.slate  { background: #F1F5F9; color: #475569; }
+.card-icon.slate::after  { background: #CBD5E1; }
+.card-body { flex: 1; min-width: 0; }
+.card-title { font-size: 15px; font-weight: 600; color: var(--color-text); margin-bottom: 3px; line-height: 1.4; }
+.card-desc  { font-size: 13px; color: #6B7280; line-height: 1.7;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-arrow { color: var(--color-text-muted); flex-shrink: 0; align-self: center;
+  transition: all var(--transition); font-size: 16px; opacity: .5; }
+.card:hover .card-arrow { transform: translateX(4px); color: var(--color-primary); opacity: 1; }
+
+/* ===== Footer ===== */
+.content-footer {
+  position: relative; text-align: center; padding: 36px 0 16px;
+  color: var(--color-text-muted); font-size: 13px; letter-spacing: .02em;
+}
+.content-footer::before {
+  content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(79,70,229,.1), rgba(124,58,237,.08), transparent);
+}
+/* 页脚渐变网点 */
+.content-footer::after {
+  content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 200px; height: 60px;
+  background:
+    radial-gradient(circle, rgba(79,70,229,.04) 1px, transparent 1px),
+    radial-gradient(circle, rgba(124,58,237,.03) 1px, transparent 1px);
+  background-size: 16px 16px, 20px 20px;
+  z-index: 0; pointer-events: none;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1023px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main-content { margin-left: 0; }
+  .hamburger { display: flex; }
+  .content-area { padding: 20px 16px 48px; }
+  .card-grid { grid-template-columns: 1fr; }
+  .top-bar { padding: 10px 16px; }
+  .search-btn { padding: 8px 16px; font-size: 13px; }
+  .category-title { font-size: 20px; }
+  .category-title .cat-icon { font-size: 24px; }
+  .category-section { margin-left: 0; margin-right: 0; padding: 16px; border-radius: var(--radius-md); }
+  .content-banner { padding: 24px 18px; margin-bottom: 24px; }
+  .content-banner h2 { font-size: 18px; }
+  #concepts::before { width: 50px; height: 50px; top: 8px; right: 8px; }
+  #concepts::after { width: 30px; height: 30px; bottom: 10px; left: 10px; }
+  #timeline::after { box-shadow: 40px 0 0 rgba(124,58,237,.12), 80px 0 0 rgba(79,70,229,.1), 120px 0 0 rgba(124,58,237,.08); }
+}
+@media (min-width: 640px) and (max-width: 1023px) {
+  .card-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ==================== SIDEBAR OVERLAY (mobile) ==================== -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ==================== SIDEBAR ==================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">艺</div>
+      <span class="name">数媒艺路</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">一级分类</div>
+      <button class="nav-item active" data-target="concepts">
+        <span class="nav-icon">💡</span>认识数媒
+      </button>
+      <button class="nav-item" data-target="timeline">
+        <span class="nav-icon">⏱️</span>发展时间轴
+      </button>
+      <button class="nav-item" data-target="art-forms">
+        <span class="nav-icon">🎨</span>艺术形式
+      </button>
+      <button class="nav-item" data-target="cases">
+        <span class="nav-icon">🖼️</span>代表案例
+      </button>
+      <button class="nav-item" data-target="glossary">
+        <span class="nav-icon">📖</span>技术词典
+      </button>
+      <button class="nav-item" data-target="creation">
+        <span class="nav-icon">✏️</span>创作流程
+      </button>
+    </nav>
+  </aside>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <div class="main-content" id="mainContent">
+
+    <!-- === Top Search Bar === -->
+    <div class="top-bar">
+      <button class="hamburger" id="hamburger" aria-label="菜单">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+          <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
+        </svg>
+      </button>
+
+      <div class="search-wrapper" id="searchWrapper">
+        <button class="engine-toggle" id="engineToggle">
+          <span id="engineLabel">百度</span>
+          <span class="caret">▾</span>
+        </button>
+        <div class="engine-dropdown" id="engineDropdown">
+          <button class="engine-option" data-engine="baidu" data-name="百度">百度</button>
+          <button class="engine-option" data-engine="google" data-name="Google">Google</button>
+          <button class="engine-option" data-engine="bing" data-name="必应">必应</button>
+        </div>
+        <input type="text" class="search-input" id="searchInput"
+          placeholder="搜索数字媒体艺术..." autocomplete="off">
+      </div>
+      <button class="search-btn" id="searchBtn">搜索</button>
+    </div>
+
+    <!-- === Content Area === -->
+    <div class="content-area" id="contentArea">
+
+      <!-- ===== Top Banner ===== -->
+      <div class="content-banner">
+        <h2>从零开始，认识数字媒体艺术</h2>
+        <p>一站式学习核心概念、艺术形式、经典案例与创作流程，探索技术与艺术的交叉世界</p>
+      </div>
+
+      <!-- ===== 1. 认识数媒 ===== -->
+      <section class="category-section" id="concepts">
+        <div class="category-title"><span class="cat-icon">💡</span>认识数媒</div>
+        <p class="category-desc">了解数字媒体艺术的核心概念、基本特征与学科交叉领域</p>
+        <div class="sub-tabs" data-category="concepts">
+          <button class="sub-tab active" data-sub="basic">核心概念</button>
+          <button class="sub-tab" data-sub="feature">基本特征</button>
+          <button class="sub-tab" data-sub="cross">学科交叉</button>
+        </div>
+        <div class="card-grid" id="cards-concepts-basic"></div>
+        <div class="card-grid" id="cards-concepts-feature" style="display:none;"></div>
+        <div class="card-grid" id="cards-concepts-cross" style="display:none;"></div>
+      </section>
+
+      <!-- ===== 2. 发展时间轴 ===== -->
+      <section class="category-section" id="timeline">
+        <div class="category-title"><span class="cat-icon">⏱️</span>发展时间轴</div>
+        <p class="category-desc">从 1960 年代到 2020 年代的数字媒体艺术发展脉络</p>
+        <div class="sub-tabs" data-category="timeline">
+          <button class="sub-tab active" data-sub="early">1960–1980s</button>
+          <button class="sub-tab" data-sub="mid">1990–2000s</button>
+          <button class="sub-tab" data-sub="modern">2010s–至今</button>
+        </div>
+        <div class="card-grid" id="cards-timeline-early"></div>
+        <div class="card-grid" id="cards-timeline-mid" style="display:none;"></div>
+        <div class="card-grid" id="cards-timeline-modern" style="display:none;"></div>
+      </section>
+
+      <!-- ===== 3. 艺术形式 ===== -->
+      <section class="category-section" id="art-forms">
+        <div class="category-title"><span class="cat-icon">🎨</span>艺术形式</div>
+        <p class="category-desc">探索数字媒体艺术的八大主要表现形式</p>
+        <div class="sub-tabs" data-category="art-forms">
+          <button class="sub-tab active" data-sub="interactive">交互媒体</button>
+          <button class="sub-tab" data-sub="vr-ar">VR/AR 艺术</button>
+          <button class="sub-tab" data-sub="generative">生成艺术</button>
+          <button class="sub-tab" data-sub="video">数字影像</button>
+        </div>
+        <div class="card-grid" id="cards-art-forms-interactive"></div>
+        <div class="card-grid" id="cards-art-forms-vr-ar" style="display:none;"></div>
+        <div class="card-grid" id="cards-art-forms-generative" style="display:none;"></div>
+        <div class="card-grid" id="cards-art-forms-video" style="display:none;"></div>
+      </section>
+
+      <!-- ===== 4. 代表案例 ===== -->
+      <section class="category-section" id="cases">
+        <div class="category-title"><span class="cat-icon">🖼️</span>代表案例</div>
+        <p class="category-desc">精选世界范围内具有代表性的数字媒体艺术作品</p>
+        <div class="sub-tabs" data-category="cases">
+          <button class="sub-tab active" data-sub="immersive">沉浸式体验</button>
+          <button class="sub-tab" data-sub="game">游戏艺术</button>
+          <button class="sub-tab" data-sub="ai-art">AI 艺术</button>
+        </div>
+        <div class="card-grid" id="cards-cases-immersive"></div>
+        <div class="card-grid" id="cards-cases-game" style="display:none;"></div>
+        <div class="card-grid" id="cards-cases-ai-art" style="display:none;"></div>
+      </section>
+
+      <!-- ===== 5. 技术词典 ===== -->
+      <section class="category-section" id="glossary">
+        <div class="category-title"><span class="cat-icon">📖</span>技术词典</div>
+        <p class="category-desc">数字媒体艺术领域常用技术术语与工具速查</p>
+        <div class="sub-tabs" data-category="glossary">
+          <button class="sub-tab active" data-sub="tech">核心技术</button>
+          <button class="sub-tab" data-sub="tools">常用工具</button>
+          <button class="sub-tab" data-sub="standard">行业标准</button>
+        </div>
+        <div class="card-grid" id="cards-glossary-tech"></div>
+        <div class="card-grid" id="cards-glossary-tools" style="display:none;"></div>
+        <div class="card-grid" id="cards-glossary-standard" style="display:none;"></div>
+      </section>
+
+      <!-- ===== 6. 创作流程 ===== -->
+      <section class="category-section" id="creation">
+        <div class="category-title"><span class="cat-icon">✏️</span>创作流程</div>
+        <p class="category-desc">从灵感到成品的完整数字媒体艺术创作流程</p>
+        <div class="sub-tabs" data-category="creation">
+          <button class="sub-tab active" data-sub="inspire">灵感与策划</button>
+          <button class="sub-tab" data-sub="produce">制作与技术</button>
+          <button class="sub-tab" data-sub="publish">发布与迭代</button>
+        </div>
+        <div class="card-grid" id="cards-creation-inspire"></div>
+        <div class="card-grid" id="cards-creation-produce" style="display:none;"></div>
+        <div class="card-grid" id="cards-creation-publish" style="display:none;"></div>
+      </section>
+
+      <div class="content-footer">数媒艺路 · 数字媒体艺术学习导航</div>
+
+    </div><!-- /content-area -->
+  </div><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<script>
+// ============================
+// DATA
+// ============================
+const cardData = {
+  'concepts-basic': [
+    { icon:'💡', color:'blue',   title:'什么是数字媒体艺术',  desc:'以数字技术为核心创作工具和载体的艺术形式，涵盖交互、影像、动画等', url:'https://baike.baidu.com/item/数字媒体艺术' },
+    { icon:'🖥️', color:'purple', title:'数字艺术 vs 传统艺术', desc:'从材料到媒介的范式转移：数字艺术的非物质性与可复制性', url:'https://en.wikipedia.org/wiki/Digital_art' },
+    { icon:'🎯', color:'green',  title:'数字媒体的核心要素',  desc:'交互性、虚拟性、沉浸感、生成性 —— 数字艺术的四大支柱', url:'https://baike.baidu.com/item/数字媒体' },
+  ],
+  'concepts-feature': [
+    { icon:'🔄', color:'blue',   title:'交互性',     desc:'观众不再是被动的观看者，而是作品的参与者和共创者', url:'https://en.wikipedia.org/wiki/Interactive_art' },
+    { icon:'🌐', color:'purple', title:'虚拟性',     desc:'突破物理空间的限制，在虚拟世界中创造全新的审美体验', url:'https://baike.baidu.com/item/虚拟现实' },
+    { icon:'🧬', color:'amber',  title:'生成性',     desc:'算法驱动的艺术创作，每一次运行都产生独特结果', url:'https://en.wikipedia.org/wiki/Generative_art' },
+  ],
+  'concepts-cross': [
+    { icon:'🔬', color:'cyan',   title:'计算机科学',   desc:'编程、算法与数据结构是数字艺术家的新画笔', url:'https://en.wikipedia.org/wiki/Computer_art' },
+    { icon:'🎭', color:'rose',   title:'传统美术',     desc:'构图、色彩、光影理论在数字媒介中的延续与演化', url:'https://baike.baidu.com/item/美术' },
+    { icon:'🧠', color:'slate',  title:'认知心理学',    desc:'理解用户的感知与行为，设计更自然的交互体验', url:'https://en.wikipedia.org/wiki/Cognitive_psychology' },
+  ],
+  'timeline-early': [
+    { icon:'🖌️', color:'slate',  title:'计算机艺术的萌芽 (1960s)', desc:'Bell Labs 的科学家们首次使用计算机制作视觉艺术作品', url:'https://en.wikipedia.org/wiki/Computer_art#History' },
+    { icon:'🎨', color:'blue',  title:'Harold Cohen 与 AARON',  desc:'1973年，首个自主绘画的人工智能程序AARON诞生', url:'https://en.wikipedia.org/wiki/AARON' },
+  ],
+  'timeline-mid': [
+    { icon:'💿', color:'purple', title:'CD-ROM 艺术时代 (1990s)',  desc:'多媒体光盘成为艺术家的新创作平台，非线性叙事探索', url:'https://en.wikipedia.org/wiki/Interactive_media' },
+    { icon:'🌍', color:'green',  title:'Internet Art 兴起 (1995)', desc:'万维网的普及催生了以网络为媒介的全新艺术形式', url:'https://en.wikipedia.org/wiki/Internet_art' },
+  ],
+  'timeline-modern': [
+    { icon:'🤖', color:'amber',  title:'AI 艺术爆发 (2018+)',     desc:'GAN、Diffusion等模型让机器学习成为创作的主流工具之一', url:'https://en.wikipedia.org/wiki/Artificial_intelligence_art' },
+    { icon:'🥽', color:'cyan',   title:'空间计算时代 (2020s)',     desc:'Apple Vision Pro 等设备开启空间计算与艺术融合的新篇章', url:'https://en.wikipedia.org/wiki/Spatial_computing' },
+  ],
+  'art-forms-interactive': [
+    { icon:'👆', color:'blue',   title:'交互装置艺术',        desc:'通过传感器捕捉观众的动作、声音或触摸，触发实时视觉反馈', url:'https://en.wikipedia.org/wiki/Interactive_installation' },
+    { icon:'🎮', color:'green',  title:'互动游戏艺术',        desc:'不以娱乐为唯一目的，强调艺术表达与哲学思考的游戏作品', url:'https://en.wikipedia.org/wiki/Art_game' },
+  ],
+  'art-forms-vr-ar': [
+    { icon:'🥽', color:'purple', title:'虚拟现实 (VR) 艺术',  desc:'完全数字化的三维沉浸式环境，用户通过头戴设备体验', url:'https://en.wikipedia.org/wiki/Virtual_reality' },
+    { icon:'📱', color:'rose',   title:'增强现实 (AR) 艺术',  desc:'将数字内容叠加到真实世界之上，拓展物理空间的维度', url:'https://en.wikipedia.org/wiki/Augmented_reality' },
+  ],
+  'art-forms-generative': [
+    { icon:'🧬', color:'amber',  title:'算法生成艺术',        desc:'使用Processing、p5.js等编程工具，通过算法自动生成视觉作品', url:'https://en.wikipedia.org/wiki/Generative_art' },
+    { icon:'🌿', color:'green',  title:'分形与数学艺术',      desc:'利用递归和数学公式创造具有自相似性的复杂视觉结构', url:'https://en.wikipedia.org/wiki/Fractal_art' },
+  ],
+  'art-forms-video': [
+    { icon:'🎬', color:'cyan',   title:'数字影像艺术',        desc:'使用After Effects、Blender等工具创作的纯数字动态影像', url:'https://en.wikipedia.org/wiki/Video_art' },
+    { icon:'🎞️', color:'slate',  title:'投影映射 (Mapping)',   desc:'将数字影像精确投射到建筑表面的三维立体光影艺术', url:'https://en.wikipedia.org/wiki/Projection_mapping' },
+  ],
+  'cases-immersive': [
+    { icon:'🏛️', color:'blue',   title:'teamLab Borderless',   desc:'日本teamLab打造的沉浸式数字艺术博物馆，作品随观众互动变化', url:'https://borderless.teamlab.art' },
+    { icon:'🌊', color:'cyan',   title:'Artechouse',          desc:'基于数据可视化技术的沉浸式数字艺术空间，融合科学与艺术', url:'https://www.artechouse.com' },
+  ],
+  'cases-game': [
+    { icon:'🏰', color:'purple', title:'纪念碑谷',              desc:'埃舍尔不可能几何与极简美学的结合，重新定义了游戏的艺术性', url:'https://www.monumentvalleygame.com' },
+    { icon:'⛰️', color:'amber',  title:'Journey (风之旅人)',     desc:'极简交互与宏大场景的音乐视觉叙事，GDC年度最佳游戏', url:'https://thatgamecompany.com/journey/' },
+  ],
+  'cases-ai-art': [
+    { icon:'🤖', color:'rose',   title:'Refik Anadol 数据雕塑', desc:'使用AI分析海量数据并转化为动态数字雕塑与空间装置', url:'https://refikanadol.com' },
+    { icon:'🎨', color:'slate',  title:'Midjourney 生成艺术',    desc:'基于文本提示的AI图像生成工具，掀起全民AI创作浪潮', url:'https://www.midjourney.com' },
+  ],
+  'glossary-tech': [
+    { icon:'🧠', color:'purple', title:'AIGC (生成式AI)',    desc:'利用大语言模型和扩散模型自动生成文本、图像、音频、视频内容', url:'https://en.wikipedia.org/wiki/Generative_artificial_intelligence' },
+    { icon:'👁️', color:'blue',   title:'计算机视觉',         desc:'让机器理解数字图像和视频的技术，广泛用于交互艺术', url:'https://en.wikipedia.org/wiki/Computer_vision' },
+    { icon:'🦴', color:'green',  title:'动作捕捉',           desc:'精确记录人体运动数据并映射到数字角色上，广泛用于游戏和电影', url:'https://en.wikipedia.org/wiki/Motion_capture' },
+  ],
+  'glossary-tools': [
+    { icon:'🔧', color:'cyan',   title:'Blender',            desc:'开源全功能三维创作套件，覆盖建模、动画、渲染、合成全流程', url:'https://www.blender.org' },
+    { icon:'🎛️', color:'amber',  title:'TouchDesigner',      desc:'可视化节点式编程工具，用于实时交互媒体的快速原型开发', url:'https://derivative.ca' },
+    { icon:'🎨', color:'rose',   title:'Procreate',          desc:'iPad上最受欢迎的数字绘画应用，深受数字插画师喜爱', url:'https://procreate.com' },
+  ],
+  'glossary-standard': [
+    { icon:'📐', color:'slate',  title:'OpenGL / Vulkan',   desc:'底层图形API标准，驱动现代实时渲染和GPU加速计算', url:'https://www.vulkan.org' },
+    { icon:'🖼️', color:'blue',   title:'OpenEXR',            desc:'工业光魔开发的高动态范围(HDR)图像文件格式，电影VFX标准', url:'https://www.openexr.com' },
+  ],
+  'creation-inspire': [
+    { icon:'💭', color:'blue',   title:'主题确定与概念设计',   desc:'从社会议题、个人经验或技术探索出发，明确创作主题和核心概念', url:'#' },
+    { icon:'📋', color:'purple', title:'Mood Board 收集',     desc:'通过Pinterest等工具搜集视觉参考、色彩搭配和风格灵感', url:'#' },
+  ],
+  'creation-produce': [
+    { icon:'⚙️', color:'green',  title:'工具选择与技术预研',   desc:'根据创作需求选择合适的技术栈：Blender、Unity、p5.js等', url:'#' },
+    { icon:'🔁', color:'amber',  title:'迭代开发与测试',       desc:'快速原型 → 用户测试 → 反馈优化 → 持续迭代的工作流', url:'#' },
+  ],
+  'creation-publish': [
+    { icon:'🚀', color:'rose',   title:'作品发布与展览',       desc:'在线上平台或线下展览中发布作品，准备作品集文档', url:'#' },
+    { icon:'📊', color:'cyan',   title:'受众反馈与版本迭代',   desc:'根据观众反馈和数据分析持续优化作品，推动版本演进', url:'#' },
+  ],
+};
+
+// ============================
+// RENDER CARDS
+// ============================
+function createCardHTML(item) {
+  return `
+    <a class="card" href="${item.url}" target="_blank" rel="noopener">
+      <div class="card-icon ${item.color}">${item.icon}</div>
+      <div class="card-body">
+        <div class="card-title">${item.title}</div>
+        <div class="card-desc">${item.desc}</div>
+      </div>
+      <span class="card-arrow">→</span>
+    </a>`;
+}
+
+for (const [key, items] of Object.entries(cardData)) {
+  const el = document.getElementById('cards-' + key);
+  if (el) el.innerHTML = items.map(createCardHTML).join('');
+}
+
+// ============================
+// SUB-TAB SWITCHING
+// ============================
+document.querySelectorAll('.sub-tabs').forEach(tabGroup => {
+  const category = tabGroup.dataset.category;
+  tabGroup.addEventListener('click', e => {
+    const tab = e.target.closest('.sub-tab');
+    if (!tab) return;
+    const sub = tab.dataset.sub;
+
+    tabGroup.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+
+    tabGroup.querySelectorAll('.sub-tab').forEach(t => {
+      const grid = document.getElementById('cards-' + category + '-' + t.dataset.sub);
+      if (grid) grid.style.display = t === tab ? '' : 'none';
+    });
+  });
+});
+
+// ============================
+// SEARCH ENGINE
+// ============================
+let currentEngine = 'baidu';
+const engineUrls = {
+  baidu: 'https://www.baidu.com/s?wd=',
+  google: 'https://www.google.com/search?q=',
+  bing: 'https://www.bing.com/search?q=',
+};
+
+const engineToggle = document.getElementById('engineToggle');
+const engineLabel = document.getElementById('engineLabel');
+const engineDropdown = document.getElementById('engineDropdown');
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
+
+engineToggle.addEventListener('click', (e) => {
+  e.stopPropagation();
+  engineDropdown.classList.toggle('show');
+});
+
+document.addEventListener('click', () => {
+  engineDropdown.classList.remove('show');
+});
+
+engineDropdown.addEventListener('click', (e) => {
+  const opt = e.target.closest('.engine-option');
+  if (!opt) return;
+  currentEngine = opt.dataset.engine;
+  engineLabel.textContent = opt.dataset.name;
+  engineDropdown.classList.remove('show');
+});
+
+function doSearch() {
+  const query = searchInput.value.trim();
+  if (!query) return;
+  window.open(engineUrls[currentEngine] + encodeURIComponent(query), '_blank');
+}
+
+searchBtn.addEventListener('click', doSearch);
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doSearch();
+});
+
+// ============================
+// SIDEBAR NAVIGATION
+// ============================
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+const hamburger = document.getElementById('hamburger');
+const navItems = document.querySelectorAll('.nav-item');
+
+function openSidebar() {
+  sidebar.classList.add('open');
+  sidebarOverlay.classList.add('show');
+}
+function closeSidebar() {
+  sidebar.classList.remove('open');
+  sidebarOverlay.classList.remove('show');
+}
+
+hamburger.addEventListener('click', openSidebar);
+sidebarOverlay.addEventListener('click', closeSidebar);
+
+navItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const targetId = item.dataset.target;
+    const section = document.getElementById(targetId);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+    }
+    closeSidebar();
+  });
+});
+
+// ============================
+// SCROLL SPY (Intersection Observer)
+// ============================
+const sections = document.querySelectorAll('.category-section');
+const observerOptions = {
+  rootMargin: '-80px 0px -60% 0px',
+  threshold: 0,
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navItems.forEach(item => {
+        item.classList.toggle('active', item.dataset.target === id);
+      });
+    }
+  });
+}, observerOptions);
+
+sections.forEach(section => observer.observe(section));
+</script>
+
+</body>
+</html>
