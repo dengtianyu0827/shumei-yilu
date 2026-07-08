@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>数媒艺路 — 数字媒体艺术科普APP</title>
+<style>
+/* ============================
+   DESIGN SYSTEM — 蓝紫科技艺术风
+   ============================ */
+:root {
+  --primary: #6366F1;
+  --primary-dark: #4F46E5;
+  --primary-light: #EEF2FF;
+  --accent: #7C3AED;
+  --bg: #F8FAFC;
+  --surface: #FFFFFF;
+  --text: #1E293B;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+  --border: #E2E8F0;
+  --border-light: #F1F5F9;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.04);
+  --shadow: 0 4px 16px rgba(0,0,0,.06);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,.1);
+  --font: -apple-system, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { font-size: 16px; }
+body {
+  font-family: var(--font); background: #0F172A; color: var(--text);
+  display: flex; justify-content: center; align-items: center;
+  min-height: 100vh; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* App Container — iPhone 14 Pro 模拟 */
+.app-container {
+  width: 390px; max-width: 100vw; height: 844px; max-height: 100vh;
+  background: var(--bg); position: relative; overflow: hidden;
+  border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  display: flex; flex-direction: column;
+}
+@media (max-width: 430px) {
+  .app-container { width: 100vw; height: 100vh; border-radius: 0; max-height: 100vh; }
+}
+
+/* ===== Status Bar ===== */
+.status-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 24px 6px; font-size: 12px; font-weight: 600;
+  color: var(--text); flex-shrink: 0;
+}
+
+/* ===== Header ===== */
+.app-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 16px; flex-shrink: 0;
+}
+.app-header .back-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; transition: background .2s;
+}
+.app-header .back-btn:active { background: var(--border-light); }
+.app-header .title { font-size: 17px; font-weight: 600; }
+.app-header .action { width: 36px; height: 36px; }
+
+/* ===== Page Container ===== */
+.page-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.page-content::-webkit-scrollbar { display: none; }
+
+/* ===== Bottom Tab Bar ===== */
+.tab-bar {
+  display: flex; justify-content: space-around; align-items: center;
+  height: 56px; background: rgba(255,255,255,.85);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border); flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.tab-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  flex: 1; padding: 6px 0; font-size: 10px; color: var(--text-muted);
+  transition: color .2s;
+}
+.tab-item.active { color: var(--primary); }
+.tab-item .tab-icon { font-size: 22px; }
+
+/* ===== Screen visibility ===== */
+.screen { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.screen.active { display: flex; }
+
+/* ============================
+   SPLASH SCREEN
+   ============================ */
+.splash-screen {
+  background: linear-gradient(160deg, #312E81 0%, #4F46E5 40%, #7C3AED 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 20px; position: relative; overflow: hidden;
+}
+.splash-screen::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(255,255,255,.06) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(99,102,241,.2) 0%, transparent 60%);
+}
+.splash-logo {
+  width: 80px; height: 80px; border-radius: 22px;
+  background: rgba(255,255,255,.15); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px; color: #fff; position: relative; z-index: 1;
+  box-shadow: 0 8px 32px rgba(0,0,0,.2);
+  animation: splashPulse 2s ease-in-out infinite;
+}
+@keyframes splashPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.splash-title { font-size: 28px; font-weight: 700; color: #fff; position: relative; z-index: 1; letter-spacing: .04em; }
+.splash-sub { font-size: 14px; color: rgba(255,255,255,.7); position: relative; z-index: 1; }
+.splash-btn {
+  margin-top: 40px; padding: 14px 48px; border-radius: 50px;
+  background: rgba(255,255,255,.2); backdrop-filter: blur(8px);
+  color: #fff; font-size: 16px; font-weight: 600; position: relative; z-index: 1;
+  transition: all .2s; letter-spacing: .02em;
+}
+.splash-btn:active { background: rgba(255,255,255,.35); transform: scale(.97); }
+
+/* ============================
+   LOGIN SCREEN
+   ============================ */
+.login-screen { background: var(--surface); }
+.login-screen .page-content { display: flex; flex-direction: column; padding: 32px 24px; }
+.login-logo { text-align: center; margin-bottom: 32px; }
+.login-logo .icon {
+  width: 64px; height: 64px; border-radius: 18px; margin: 0 auto 12px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; color: #fff; box-shadow: 0 4px 20px rgba(99,102,241,.3);
+}
+.login-logo h2 { font-size: 22px; font-weight: 700; color: var(--text); }
+.login-logo p { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+.form-input {
+  width: 100%; padding: 12px 16px; border: 1.5px solid var(--border);
+  border-radius: var(--radius); font-size: 15px; outline: none;
+  transition: border-color .2s; background: var(--border-light);
+}
+.form-input:focus { border-color: var(--primary); background: var(--surface); }
+.btn-primary {
+  width: 100%; padding: 14px; border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff; font-size: 16px; font-weight: 600; transition: all .2s;
+  box-shadow: 0 4px 16px rgba(99,102,241,.25);
+}
+.btn-primary:active { transform: scale(.98); opacity: .9; }
+.btn-outline {
+  width: 100%; padding: 14px; border-radius: var(--radius);
+  border: 1.5px solid var(--border); color: var(--text-secondary);
+  font-size: 16px; font-weight: 500; transition: all .2s;
+}
+.btn-outline:active { background: var(--border-light); }
+.login-divider {
+  display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--text-muted); font-size: 13px;
+}
+.login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ============================
+   HOME SCREEN
+   ============================ */
+.home-hero {
+  background: linear-gradient(160deg, #312E81 0%, #4F46E5 40%, #7C3AED 100%);
+  padding: 20px 20px 28px; position: relative; overflow: hidden;
+}
+.home-hero::before {
+  content: ''; position: absolute; top: -30%; right: -20%;
+  width: 160px; height: 160px; border-radius: 50%;
+  background: rgba(255,255,255,.06);
+}
+.home-hero h1 { font-size: 24px; font-weight: 700; color: #fff; position: relative; z-index: 1; }
+.home-hero p { font-size: 13px; color: rgba(255,255,255,.75); margin-top: 4px; position: relative; z-index: 1; }
+.home-hero .search-box {
+  display: flex; align-items: center; gap: 8px; margin-top: 16px;
+  padding: 10px 16px; background: rgba(255,255,255,.15); backdrop-filter: blur(8px);
+  border-radius: 50px; color: rgba(255,255,255,.6); font-size: 14px;
+  position: relative; z-index: 1;
+}
+
+.section-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 20px 12px; }
+.section-header h3 { font-size: 17px; font-weight: 600; }
+.section-header span { font-size: 13px; color: var(--primary); }
+
+/* Feature grid — 3 cols */
+.feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 16px; }
+.feature-card {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 16px 8px; border-radius: var(--radius-lg); background: var(--surface);
+  box-shadow: var(--shadow-sm); transition: all .2s; text-align: center;
+}
+.feature-card:active { transform: scale(.96); }
+.feature-card .fc-icon {
+  width: 44px; height: 44px; border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+}
+.feature-card .fc-label { font-size: 12px; font-weight: 500; color: var(--text); }
+
+/* Recommend cards */
+.recommend-list { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
+.rec-card {
+  display: flex; gap: 14px; padding: 14px; border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow-sm);
+  transition: all .2s; align-items: center;
+}
+.rec-card:active { transform: scale(.98); }
+.rec-card .rec-icon {
+  width: 52px; height: 52px; border-radius: var(--radius); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 26px;
+}
+.rec-card .rec-info { flex: 1; min-width: 0; }
+.rec-card .rec-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.rec-card .rec-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rec-card .rec-tag { font-size: 11px; color: var(--primary); background: var(--primary-light); padding: 3px 10px; border-radius: 50px; font-weight: 500; }
+
+/* ============================
+   MODULE LIST SCREEN
+   ============================ */
+.module-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px; }
+.module-card {
+  padding: 20px 14px; border-radius: var(--radius-lg); background: var(--surface);
+  box-shadow: var(--shadow-sm); transition: all .2s; position: relative; overflow: hidden;
+}
+.module-card:active { transform: scale(.97); }
+.module-card .mc-icon { font-size: 32px; margin-bottom: 10px; }
+.module-card .mc-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.module-card .mc-desc { font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+
+/* ============================
+   DETAIL / CONTENT SCREEN
+   ============================ */
+.detail-hero {
+  background: linear-gradient(160deg, #312E81 0%, #4F46E5 40%, #7C3AED 100%);
+  padding: 20px 20px 24px; position: relative; overflow: hidden;
+}
+.detail-hero::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 24px;
+  background: var(--bg); border-radius: 20px 20px 0 0;
+}
+.detail-hero h2 { font-size: 20px; font-weight: 700; color: #fff; position: relative; z-index: 1; }
+.detail-hero p { font-size: 13px; color: rgba(255,255,255,.75); margin-top: 4px; position: relative; z-index: 1; }
+
+.detail-body { padding: 0 16px 24px; }
+.info-card {
+  padding: 16px; border-radius: var(--radius-lg); background: var(--surface);
+  box-shadow: var(--shadow-sm); margin-bottom: 12px;
+}
+.info-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.info-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+
+/* Timeline */
+.timeline-node {
+  display: flex; gap: 14px; padding-bottom: 20px; position: relative;
+}
+.timeline-node::before {
+  content: ''; position: absolute; left: 15px; top: 32px; bottom: 0;
+  width: 2px; background: linear-gradient(to bottom, var(--primary), var(--accent), transparent);
+}
+.timeline-node:last-child::before { display: none; }
+.timeline-dot {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 14px; font-weight: 700; z-index: 1;
+}
+.timeline-content { flex: 1; padding-bottom: 4px; }
+.timeline-content .tl-year { font-size: 13px; color: var(--primary); font-weight: 600; }
+.timeline-content .tl-title { font-size: 15px; font-weight: 600; color: var(--text); margin-top: 2px; }
+.timeline-content .tl-desc { font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.6; }
+
+/* Glossary */
+.glossary-item {
+  padding: 14px 0; border-bottom: 1px solid var(--border-light);
+  transition: all .2s;
+}
+.glossary-item .gl-term { font-size: 15px; font-weight: 600; color: var(--text); display: flex; justify-content: space-between; align-items: center; }
+.glossary-item .gl-def { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-top: 6px; display: none; }
+.glossary-item.expanded .gl-def { display: block; }
+.glossary-item .gl-arrow { transition: transform .2s; font-size: 14px; color: var(--text-muted); }
+.glossary-item.expanded .gl-arrow { transform: rotate(180deg); }
+
+/* Case card */
+.case-card {
+  border-radius: var(--radius-lg); overflow: hidden; background: var(--surface);
+  box-shadow: var(--shadow-sm); margin-bottom: 14px;
+}
+.case-card .case-img {
+  height: 140px; display: flex; align-items: center; justify-content: center;
+  font-size: 48px;
+}
+.case-card .case-body { padding: 14px; }
+.case-card .case-body h4 { font-size: 15px; font-weight: 600; }
+.case-card .case-body p { font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.6; }
+
+/* Tab filter */
+.filter-tabs { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; }
+.filter-tabs::-webkit-scrollbar { display: none; }
+.filter-tab {
+  padding: 7px 16px; border-radius: 50px; font-size: 13px; font-weight: 500;
+  white-space: nowrap; background: var(--border-light); color: var(--text-secondary);
+  transition: all .2s; flex-shrink: 0;
+}
+.filter-tab.active { background: var(--primary); color: #fff; }
+
+/* ============================
+   QUIZ SCREEN
+   ============================ */
+.quiz-card {
+  margin: 0 16px 16px; padding: 24px 20px; border-radius: var(--radius-xl);
+  background: var(--surface); box-shadow: var(--shadow-sm);
+}
+.quiz-progress {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 20px;
+}
+.quiz-progress .bar {
+  flex: 1; height: 6px; border-radius: 3px; background: var(--border-light); overflow: hidden;
+}
+.quiz-progress .bar-fill {
+  height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--primary), var(--accent));
+  transition: width .3s;
+}
+.quiz-progress .count { font-size: 13px; color: var(--text-muted); }
+.quiz-question { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 20px; line-height: 1.5; }
+.quiz-option {
+  width: 100%; padding: 14px 16px; border-radius: var(--radius); border: 2px solid var(--border);
+  text-align: left; font-size: 15px; margin-bottom: 10px; transition: all .2s; display: flex; align-items: center; gap: 10px;
+}
+.quiz-option:active { transform: scale(.98); }
+.quiz-option.selected { border-color: var(--primary); background: var(--primary-light); }
+.quiz-option.correct { border-color: var(--success); background: #ECFDF5; }
+.quiz-option.wrong { border-color: var(--error); background: #FFF1F2; }
+.quiz-option .opt-letter { width: 28px; height: 28px; border-radius: 50%; background: var(--border-light); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.quiz-option.selected .opt-letter { background: var(--primary); color: #fff; }
+
+/* Quiz home */
+.quiz-home-card {
+  margin: 0 16px 16px; padding: 20px; border-radius: var(--radius-xl);
+  background: var(--surface); box-shadow: var(--shadow-sm); transition: all .2s;
+}
+.quiz-home-card:active { transform: scale(.98); }
+.quiz-home-card .qh-icon { font-size: 36px; margin-bottom: 10px; }
+.quiz-home-card .qh-title { font-size: 17px; font-weight: 600; }
+.quiz-home-card .qh-desc { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+/* Result */
+.result-hero {
+  text-align: center; padding: 40px 20px;
+  background: linear-gradient(160deg, #312E81 0%, #4F46E5 40%, #7C3AED 100%);
+  margin: 0 16px; border-radius: var(--radius-xl); color: #fff;
+}
+.result-score { font-size: 56px; font-weight: 700; }
+.result-msg { font-size: 16px; opacity: .9; margin-top: 4px; }
+.result-detail { padding: 20px 16px; }
+.result-detail h4 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+
+/* ============================
+   PROFILE SCREEN
+   ============================ */
+.profile-header {
+  background: linear-gradient(160deg, #312E81 0%, #4F46E5 40%, #7C3AED 100%);
+  padding: 24px 20px 32px; position: relative; overflow: hidden;
+}
+.profile-header::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 20px;
+  background: var(--bg); border-radius: 16px 16px 0 0;
+}
+.profile-avatar {
+  width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; color: #fff; margin-bottom: 10px;
+}
+.profile-header .ph-name { font-size: 20px; font-weight: 700; color: #fff; }
+.profile-header .ph-email { font-size: 13px; color: rgba(255,255,255,.7); }
+.stats-row { display: flex; gap: 12px; padding: 0 16px; margin-top: -10px; position: relative; z-index: 1; }
+.stat-card {
+  flex: 1; padding: 16px; border-radius: var(--radius-lg); background: var(--surface);
+  box-shadow: var(--shadow-sm); text-align: center;
+}
+.stat-card .stat-num { font-size: 22px; font-weight: 700; color: var(--primary); }
+.stat-card .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.menu-list { padding: 16px; }
+.menu-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; background: var(--surface); border-radius: var(--radius);
+  margin-bottom: 8px; box-shadow: var(--shadow-sm); font-size: 14px; font-weight: 500;
+}
+.menu-item:active { background: var(--border-light); }
+.menu-item .mi-left { display: flex; align-items: center; gap: 10px; }
+.menu-item .mi-icon { font-size: 20px; }
+
+/* ===== Spacing utils ===== */
+.px-4 { padding-left: 16px; padding-right: 16px; }
+.mt-2 { margin-top: 8px; }
+.mt-4 { margin-top: 16px; }
+.mb-2 { margin-bottom: 8px; }
+.mb-4 { margin-bottom: 16px; }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+  background: var(--text); color: #fff; padding: 10px 24px; border-radius: 50px;
+  font-size: 14px; z-index: 200; opacity: 0; transition: opacity .3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="app-container" id="app">
+
+  <!-- ==================== SPLASH ==================== -->
+  <div class="screen splash-screen active" id="screen-splash">
+    <div class="splash-logo">🎨</div>
+    <div class="splash-title">数媒艺路</div>
+    <div class="splash-sub">从零开始认识数字媒体艺术</div>
+    <button class="splash-btn" onclick="navigateTo('login')">开始探索</button>
+  </div>
+
+  <!-- ==================== LOGIN ==================== -->
+  <div class="screen login-screen" id="screen-login">
+    <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+    <div class="page-content">
+      <div class="login-logo">
+        <div class="icon">🎨</div>
+        <h2>欢迎来到数媒艺路</h2>
+        <p>一站式数字媒体艺术学习平台</p>
+      </div>
+      <div class="form-group"><label>邮箱</label><input class="form-input" type="email" placeholder="请输入邮箱"></div>
+      <div class="form-group"><label>密码</label><input class="form-input" type="password" placeholder="请输入密码"></div>
+      <button class="btn-primary" onclick="navigateTo('home')">登 录</button>
+      <div class="login-divider">或</div>
+      <button class="btn-outline" onclick="navigateTo('home')">游客模式进入</button>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN APP SHELL ==================== -->
+  <div class="screen" id="screen-main">
+    <!-- Sub-screen container -->
+    <div id="main-content" style="display:flex;flex-direction:column;flex:1;overflow:hidden;"></div>
+    <!-- Tab Bar -->
+    <nav class="tab-bar">
+      <button class="tab-item active" data-tab="home" onclick="switchTab('home')"><span class="tab-icon">🏠</span>首页</button>
+      <button class="tab-item" data-tab="explore" onclick="switchTab('explore')"><span class="tab-icon">🔍</span>探索</button>
+      <button class="tab-item" data-tab="quiz" onclick="switchTab('quiz')"><span class="tab-icon">📝</span>测验</button>
+      <button class="tab-item" data-tab="profile" onclick="switchTab('profile')"><span class="tab-icon">👤</span>我的</button>
+    </nav>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================
+// NAVIGATION
+// ============================
+function navigateTo(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('screen-' + screen);
+  if (target) { target.classList.add('active'); }
+  if (screen === 'home' || screen === 'explore' || screen === 'quiz' || screen === 'profile') {
+    document.getElementById('screen-main').classList.add('active');
+    switchTab(screen);
+  }
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab-item[data-tab="${tab}"]`)?.classList.add('active');
+  const main = document.getElementById('main-content');
+  switch(tab) {
+    case 'home': main.innerHTML = renderHome(); break;
+    case 'explore': main.innerHTML = renderExplore(); break;
+    case 'quiz': main.innerHTML = renderQuizHome(); break;
+    case 'profile': main.innerHTML = renderProfile(); break;
+  }
+  document.getElementById('screen-main').classList.add('active');
+  document.getElementById('screen-splash')?.classList.remove('active');
+  document.getElementById('screen-login')?.classList.remove('active');
+  // Scroll to top
+  const pc = document.querySelector('#main-content .page-content');
+  if (pc) pc.scrollTop = 0;
+}
+
+// ============================
+// HOME
+// ============================
+function renderHome() {
+  return `
+    <div class="page-content">
+      <div class="home-hero">
+        <h1>数媒艺路</h1>
+        <p>从零开始，探索数字媒体艺术的无限可能</p>
+        <div class="search-box">🔍 搜索数媒知识、案例、术语...</div>
+      </div>
+      <div class="section-header"><h3>学习模块</h3></div>
+      <div class="feature-grid">
+        ${[
+          {icon:'💡',bg:'#EEF2FF',label:'认识数媒',id:'concepts'},
+          {icon:'⏱️',bg:'#F3E8FF',label:'发展时间轴',id:'timeline'},
+          {icon:'🎨',bg:'#FFF1F2',label:'艺术形式',id:'artforms'},
+          {icon:'🖼️',bg:'#ECFDF5',label:'代表案例',id:'cases'},
+          {icon:'📖',bg:'#FFFBEB',label:'技术词典',id:'glossary'},
+          {icon:'✏️',bg:'#ECFEFF',label:'创作流程',id:'creation'},
+        ].map(f => `
+          <div class="feature-card" onclick="openModule('${f.id}')">
+            <div class="fc-icon" style="background:${f.bg}">${f.icon}</div>
+            <div class="fc-label">${f.label}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="section-header"><h3>推荐内容</h3></div>
+      <div class="recommend-list" style="padding-bottom:20px">
+        ${[
+          {icon:'🤖',bg:'#EEF2FF',title:'AI 生成艺术入门',desc:'了解GAN、Diffusion等AI创作工具',tag:'热门'},
+          {icon:'🏛️',bg:'#F3E8FF',title:'teamLab 沉浸式数字展',desc:'全球最受欢迎的数字艺术博物馆',tag:'案例'},
+          {icon:'🎮',bg:'#ECFDF5',title:'互动游戏艺术赏析',desc:'当游戏成为艺术表达的媒介',tag:'推荐'},
+        ].map(r => `
+          <div class="rec-card" onclick="showToast('即将上线')">
+            <div class="rec-icon" style="background:${r.bg}">${r.icon}</div>
+            <div class="rec-info"><div class="rec-title">${r.title}</div><div class="rec-desc">${r.desc}</div></div>
+            <span class="rec-tag">${r.tag}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
+// ============================
+// EXPLORE — Module List
+// ============================
+function renderExplore() {
+  const modules = [
+    {id:'concepts',icon:'💡',bg:'#EEF2FF',title:'认识数媒',desc:'核心概念、基本特征与学科交叉'},
+    {id:'timeline',icon:'⏱️',bg:'#F3E8FF',title:'发展时间轴',desc:'1960s–2020s 技术演变脉络'},
+    {id:'artforms',icon:'🎨',bg:'#FFF1F2',title:'艺术形式',desc:'八大数字媒体艺术类别详解'},
+    {id:'cases',icon:'🖼️',bg:'#ECFDF5',title:'代表案例',desc:'全球经典数字艺术作品赏析'},
+    {id:'glossary',icon:'📖',bg:'#FFFBEB',title:'技术词典',desc:'专业术语与工具速查手册'},
+    {id:'creation',icon:'✏️',bg:'#ECFEFF',title:'创作流程',desc:'从灵感到成品的完整路径'},
+  ];
+  return `
+    <div class="page-content">
+      <div class="section-header"><h3>探索模块</h3></div>
+      <div class="module-grid">
+        ${modules.map(m => `
+          <div class="module-card" onclick="openModule('${m.id}')">
+            <div class="mc-icon">${m.icon}</div>
+            <div class="mc-title">${m.title}</div>
+            <div class="mc-desc">${m.desc}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
+// ============================
+// MODULE DETAIL PAGES
+// ============================
+function openModule(id) {
+  const main = document.getElementById('main-content');
+  switch(id) {
+    case 'concepts': main.innerHTML = renderConcepts(); break;
+    case 'timeline': main.innerHTML = renderTimeline(); break;
+    case 'artforms': main.innerHTML = renderArtForms(); break;
+    case 'cases': main.innerHTML = renderCases(); break;
+    case 'glossary': main.innerHTML = renderGlossary(); break;
+    case 'creation': main.innerHTML = renderCreation(); break;
+  }
+  document.getElementById('screen-main').classList.add('active');
+  setTimeout(() => {
+    const pc = document.querySelector('#main-content .page-content');
+    if (pc) pc.scrollTop = 0;
+  }, 50);
+}
+
+function backToExplore() { switchTab('explore'); }
+
+function moduleShell(title, desc, body) {
+  return `
+    <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+    <div class="app-header">
+      <button class="back-btn" onclick="backToExplore()">←</button>
+      <span class="title">${title}</span>
+      <div class="action"></div>
+    </div>
+    <div class="page-content">
+      <div class="detail-hero"><h2>${title}</h2><p>${desc}</p></div>
+      <div class="detail-body">${body}</div>
+    </div>`;
+}
+
+function renderConcepts() {
+  const body = `
+    <div class="info-card"><h4>什么是数字媒体艺术？</h4><p>数字媒体艺术是以数字技术为核心创作工具和传播载体的艺术形式。它涵盖交互装置、数字影像、虚拟现实、AI生成艺术等多个方向，是技术与艺术深度融合的交叉学科。与传统艺术相比，数字媒体艺术具有交互性、虚拟性、生成性和沉浸感四大核心特征。</p></div>
+    <div class="info-card"><h4>核心特征</h4><p><b>交互性</b> — 观众不再是旁观者，而是作品的参与者与共创者<br><b>虚拟性</b> — 突破物理限制，在数字空间中创造全新审美体验<br><b>生成性</b> — 算法驱动创作，每次运行都产生独一无二的结果<br><b>沉浸感</b> — 多感官包围，让观众完全进入作品构建的世界</p></div>
+    <div class="info-card"><h4>学科交叉</h4><p>数字媒体艺术融合了计算机科学、传统美术、认知心理学、传播学等多个学科。编程与算法成为艺术家的新画笔，而美学素养则赋予了技术以温度和深度。</p></div>`;
+  return moduleShell('认识数媒', '核心概念、基本特征与学科交叉领域', body);
+}
+
+function renderTimeline() {
+  const nodes = [
+    {year:'1960s',title:'计算机艺术萌芽',desc:'Bell Labs 的科学家首次使用计算机制作视觉艺术作品。计算机图形学之父 Ivan Sutherland 开发了 Sketchpad 交互式绘图系统。'},
+    {year:'1973',title:'AARON — 首个AI绘画程序',desc:'艺术家 Harold Cohen 开发了 AARON 系统，能够自主完成绘画创作，开启了人工智能与艺术融合的先河。'},
+    {year:'1990s',title:'CD-ROM 与 Internet Art',desc:'多媒体光盘成为艺术家的新创作平台。万维网普及催生了以网络为媒介的 Net.Art 运动。'},
+    {year:'2001',title:'Processing 发布',desc:'MIT 媒体实验室发布 Processing 编程语言，极大降低了艺术家使用代码创作的门槛，催生了创意编程社区。'},
+    {year:'2010s',title:'数字艺术进入主流',desc:'teamLab、Random International 等数字艺术团体的大型沉浸式展览在全球巡展，数字艺术进入大众视野。'},
+    {year:'2018+',title:'AI 艺术爆发',desc:'GAN、Diffusion 等深度学习模型让 AI 图像生成成为现实。Obvious 团队的 AI 画作在佳士得拍卖行以43万美元成交。'},
+    {year:'2020s',title:'空间计算时代',desc:'Apple Vision Pro 等设备开启了空间计算与艺术融合的新篇章，VR/AR 艺术创作进入新纪元。'},
+  ];
+  const body = nodes.map(n => `
+    <div class="timeline-node">
+      <div class="timeline-dot">${n.year.slice(0,2)}</div>
+      <div class="timeline-content">
+        <div class="tl-year">${n.year}</div>
+        <div class="tl-title">${n.title}</div>
+        <div class="tl-desc">${n.desc}</div>
+      </div>
+    </div>`).join('');
+  return moduleShell('发展时间轴', '从1960s到2020s的数媒艺术演变', body);
+}
+
+function renderArtForms() {
+  const forms = [
+    {icon:'🎬',title:'数字影像艺术',desc:'使用 After Effects、Blender 等数字工具创作的纯数字动态影像，涵盖实验动画、动态图形、投影映射(Mapping)等。代表形式：3D动画短片、建筑投影秀。',color:'#EEF2FF'},
+    {icon:'👆',title:'交互装置艺术',desc:'通过传感器捕捉观众的动作、声音或触摸，触发实时视觉与声音反馈。观众成为作品的一部分，每一次互动都产生独特体验。',color:'#F3E8FF'},
+    {icon:'🎮',title:'游戏虚拟空间',desc:'以艺术表达而非娱乐为目的的游戏作品，强调叙事、氛围与哲学思考。代表作品：《Journey》《纪念碑谷》《Gris》。',color:'#ECFDF5'},
+    {icon:'🥽',title:'VR/AR 艺术',desc:'虚拟现实构建完全数字化的沉浸式三维环境；增强现实将数字内容叠加到真实世界。两者都在拓展我们感知空间的边界。',color:'#FFF1F2'},
+    {icon:'🧬',title:'AI 生成艺术',desc:'利用 GAN、Diffusion、Transformer 等模型自动生成图像、音乐、文本。艺术家从"制作者"转变为"策展人"，与算法协同创作。',color:'#FFFBEB'},
+    {icon:'📊',title:'数据可视化艺术',desc:'将抽象数据转化为富有美感的视觉形式。既传递信息，又创造审美体验。Refik Anadol 的数据雕塑是这一形式的代表作。',color:'#ECFEFF'},
+  ];
+  const body = forms.map(f => `
+    <div class="info-card"><h4>${f.icon} ${f.title}</h4><p>${f.desc}</p></div>
+  `).join('');
+  return moduleShell('艺术形式', '八大数字媒体艺术类别详解', body);
+}
+
+function renderCases() {
+  const cases = [
+    {icon:'🏛️',bg:'linear-gradient(135deg,#4F46E5,#7C3AED)',title:'teamLab Borderless',desc:'日本数字艺术团体teamLab打造的沉浸式数字艺术博物馆。作品随观众互动实时变化，没有固定路线，边界消融。位于东京麻布台之丘，是全球最受欢迎的数字艺术场馆之一。'},
+    {icon:'🏰',bg:'linear-gradient(135deg,#9333EA,#D946EF)',title:'纪念碑谷',desc:'ustwo Games开发的艺术游戏。灵感来自埃舍尔的"不可能几何"与极简建筑美学。玩家操控公主艾达穿越视错觉迷宫，每一帧都是精心设计的画面。'},
+    {icon:'🤖',bg:'linear-gradient(135deg,#0891B2,#06B6D4)',title:'Refik Anadol 数据雕塑',desc:'土耳其新媒体艺术家 Refik Anadol 使用AI分析海量数据（城市记忆、自然现象、音乐频率），并将其转化为动态数字雕塑与沉浸式空间装置。'},
+    {icon:'🌊',bg:'linear-gradient(135deg,#059669,#10B981)',title:'Artechouse',desc:'位于美国华盛顿特区的数字艺术空间，融合科学、技术与艺术。利用激光投影、360°全景屏幕和数据可视化技术打造沉浸式体验。'},
+  ];
+  const body = cases.map(c => `
+    <div class="case-card">
+      <div class="case-img" style="background:${c.bg}">${c.icon}</div>
+      <div class="case-body"><h4>${c.title}</h4><p>${c.desc}</p></div>
+    </div>
+  `).join('');
+  return moduleShell('代表案例', '全球经典数字艺术作品赏析', body);
+}
+
+function renderGlossary() {
+  const terms = [
+    {term:'AIGC',def:'Artificial Intelligence Generated Content，利用大语言模型和扩散模型自动生成文本、图像、音频、视频内容的技术总称。'},
+    {term:'生成艺术 (Generative Art)',def:'艺术家通过编写算法或规则系统，让计算机自主或半自主地生成艺术作品。每次运行都可能产生不同的结果。'},
+    {term:'动作捕捉 (MoCap)',def:'精确记录人体或物体运动数据，并将数据映射到数字角色上的技术。广泛用于电影VFX、游戏动画和交互装置。'},
+    {term:'投影映射 (Projection Mapping)',def:'将数字影像精确投射到三维建筑或物体表面，产生立体光影效果。常结合音乐和互动传感器。'},
+    {term:'Processing',def:'MIT媒体实验室开发的编程语言和开发环境，专为视觉艺术和创意编程设计，是数字艺术家最常用的工具之一。'},
+    {term:'TouchDesigner',def:'可视化节点式编程工具，用于实时交互媒体、投影映射、舞台视觉的快速原型开发，无需编写代码即可完成复杂逻辑。'},
+    {term:'Blender',def:'开源全功能三维创作套件，覆盖建模、雕刻、动画、渲染、合成和视频编辑全流程，是数字艺术家的全能工具箱。'},
+    {term:'HDR (高动态范围)',def:'相比标准动态范围(SDR)图像，能捕捉和显示更宽广亮度范围的技术。OpenEXR是工业光魔开发的HDR图像文件格式，已成为电影VFX行业标准。'},
+  ];
+  const body = terms.map((t,i) => `
+    <div class="glossary-item" id="gl-${i}" onclick="toggleGlossary(${i})">
+      <div class="gl-term">${t.term}<span class="gl-arrow">▾</span></div>
+      <div class="gl-def">${t.def}</div>
+    </div>
+  `).join('');
+  return moduleShell('技术词典', '专业术语与工具速查手册', body);
+}
+
+function renderCreation() {
+  const steps = [
+    {icon:'💭',color:'#EEF2FF',title:'灵感与主题确定',desc:'从社会议题、个人经验或技术探索出发，明确创作主题和核心概念。建立 Mood Board 收集视觉参考和风格灵感。'},
+    {icon:'📋',color:'#F3E8FF',title:'概念设计与技术预研',desc:'绘制草图和概念设计稿，根据创作需求选择技术栈：Blender/Unity/TouchDesigner/p5.js等。评估技术可行性。'},
+    {icon:'⚙️',color:'#ECFDF5',title:'制作与开发',desc:'进入实际创作阶段：建模、编程、动画制作、交互逻辑开发。采用敏捷方法，快速原型 → 测试 → 迭代优化。'},
+    {icon:'🚀',color:'#FFF1F2',title:'发布与展览',desc:'在线上平台或线下展览中发布作品。准备作品集文档，包括创作理念、技术实现、展览记录等。'},
+    {icon:'📊',color:'#FFFBEB',title:'反馈收集与迭代',desc:'收集观众反馈和数据分析，了解作品的接受度和改进空间。根据反馈持续优化，推动作品版本演进。'},
+  ];
+  const body = steps.map((s,i) => `
+    <div class="info-card" style="display:flex;gap:14px;align-items:flex-start">
+      <div style="width:44px;height:44px;border-radius:12px;background:${s.color};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${s.icon}</div>
+      <div><h4>${i+1}. ${s.title}</h4><p style="margin-top:4px">${s.desc}</p></div>
+    </div>
+  `).join('');
+  return moduleShell('创作流程', '从灵感到成品的完整路径', body);
+}
+
+// ============================
+// QUIZ
+// ============================
+const quizData = [
+  {q:'数字媒体艺术最核心的特征不包括以下哪一项？',opts:['交互性','虚拟性','永久性','生成性'],ans:2},
+  {q:'首个自主绘画的AI程序AARON诞生于哪一年？',opts:['1963','1973','1983','1993'],ans:1},
+  {q:'以下哪款工具主要用于实时交互媒体的快速原型开发？',opts:['Photoshop','Figma','TouchDesigner','VS Code'],ans:2},
+  {q:'teamLab Borderless 的艺术类型属于？',opts:['传统油画','雕塑','沉浸式数字艺术','行为艺术'],ans:2},
+  {q:'纪念碑谷的设计灵感主要来源于？',opts:['莫奈印象派','埃舍尔不可能几何','毕加索立体主义','蒙德里安风格派'],ans:1},
+];
+let quizState = {current:0,answers:[],submitted:false};
+
+function renderQuizHome() {
+  return `
+    <div class="page-content">
+      <div class="section-header"><h3>互动测验</h3></div>
+      <div class="quiz-home-card" onclick="startQuiz('knowledge')" style="background:linear-gradient(135deg,#EEF2FF,#E8E5FF)">
+        <div class="qh-icon">📚</div><div class="qh-title">知识测验</div>
+        <div class="qh-desc">5道选择题，测试你对数字媒体艺术的掌握程度</div>
+      </div>
+      <div class="quiz-home-card" onclick="startQuiz('interest')" style="background:linear-gradient(135deg,#F3E8FF,#FFE4E6)">
+        <div class="qh-icon">🎯</div><div class="qh-title">兴趣测验</div>
+        <div class="qh-desc">发现你最适合的数字媒体艺术方向</div>
+      </div>
+    </div>`;
+}
+
+function startQuiz(type) {
+  if (type === 'interest') {
+    showToast('兴趣测验即将上线');
+    return;
+  }
+  quizState = {current:0,answers:new Array(quizData.length).fill(-1),submitted:false};
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const q = quizData[quizState.current];
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+    <div class="app-header">
+      <button class="back-btn" onclick="switchTab('quiz')">←</button>
+      <span class="title">知识测验</span>
+      <div class="action"></div>
+    </div>
+    <div class="page-content">
+      <div class="quiz-card">
+        <div class="quiz-progress">
+          <div class="bar"><div class="bar-fill" style="width:${((quizState.current+1)/quizData.length)*100}%"></div></div>
+          <span class="count">${quizState.current+1}/${quizData.length}</span>
+        </div>
+        <div class="quiz-question">${quizState.current+1}. ${q.q}</div>
+        ${q.opts.map((o,i) => {
+          let cls = '';
+          if (quizState.submitted) {
+            if (i === q.ans) cls = 'correct';
+            else if (i === quizState.answers[quizState.current] && i !== q.ans) cls = 'wrong';
+          } else if (quizState.answers[quizState.current] === i) {
+            cls = 'selected';
+          }
+          return `<button class="quiz-option ${cls}" onclick="selectAnswer(${i})">
+            <span class="opt-letter">${'ABCD'[i]}</span>${o}
+          </button>`;
+        }).join('')}
+        <div style="display:flex;gap:12px;margin-top:16px">
+          ${quizState.current > 0 ? '<button class="btn-outline" style="flex:1" onclick="prevQuestion()">上一题</button>' : ''}
+          ${quizState.current < quizData.length-1
+            ? `<button class="btn-primary" style="flex:1" onclick="nextQuestion()">下一题</button>`
+            : `<button class="btn-primary" style="flex:1" onclick="submitQuiz()">提交</button>`
+          }
+        </div>
+      </div>
+    </div>`;
+}
+
+function selectAnswer(i) {
+  if (quizState.submitted) return;
+  quizState.answers[quizState.current] = i;
+  renderQuizQuestion();
+}
+function nextQuestion() {
+  if (quizState.current < quizData.length-1) { quizState.current++; renderQuizQuestion(); }
+}
+function prevQuestion() {
+  if (quizState.current > 0) { quizState.current--; renderQuizQuestion(); }
+}
+function submitQuiz() {
+  if (quizState.answers.includes(-1)) { showToast('请完成所有题目'); return; }
+  quizState.submitted = true;
+  const correct = quizState.answers.reduce((c,a,i) => c + (a === quizData[i].ans ? 1 : 0), 0);
+  const score = Math.round((correct / quizData.length) * 100);
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+    <div class="app-header">
+      <button class="back-btn" onclick="switchTab('quiz')">←</button>
+      <span class="title">测验结果</span>
+      <div class="action"></div>
+    </div>
+    <div class="page-content">
+      <div class="result-hero">
+        <div style="font-size:24px;opacity:.8">你的得分</div>
+        <div class="result-score">${score}</div>
+        <div class="result-msg">正确 ${correct}/${quizData.length} 题 — ${score>=80?'太棒了！🎉':score>=60?'继续加油💪':'多看看再试试📚'}</div>
+      </div>
+      <div class="result-detail">
+        <h4>答题回顾</h4>
+        ${quizData.map((q,i) => `
+          <div class="info-card" style="border-left:3px solid ${quizState.answers[i]===q.ans?'var(--success)':'var(--error)'}">
+            <h4>${i+1}. ${q.q}</h4>
+            <p style="font-size:12px;color:var(--text-muted)">你的答案：${'ABCD'[quizState.answers[i]]}. ${q.opts[quizState.answers[i]]}</p>
+            ${quizState.answers[i]!==q.ans ? `<p style="font-size:12px;color:var(--success)">正确答案：${'ABCD'[q.ans]}. ${q.opts[q.ans]}</p>` : ''}
+          </div>
+        `).join('')}
+        <button class="btn-primary mt-4" onclick="startQuiz('knowledge')">再来一次</button>
+      </div>
+    </div>`;
+}
+
+// ============================
+// PROFILE
+// ============================
+function renderProfile() {
+  return `
+    <div class="page-content">
+      <div class="profile-header">
+        <div class="profile-avatar">👤</div>
+        <div class="ph-name">数媒学习者</div>
+        <div class="ph-email">learner@shumei.art</div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">学习模块</div></div>
+        <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">完成测验</div></div>
+        <div class="stat-card"><div class="stat-num">80%</div><div class="stat-label">最高分</div></div>
+      </div>
+      <div class="menu-list">
+        <div class="menu-item" onclick="showToast('即将上线')"><span class="mi-left"><span class="mi-icon">📝</span>学习记录</span><span>›</span></div>
+        <div class="menu-item" onclick="showToast('即将上线')"><span class="mi-left"><span class="mi-icon">⭐</span>我的收藏</span><span>›</span></div>
+        <div class="menu-item" onclick="showToast('即将上线')"><span class="mi-left"><span class="mi-icon">📊</span>学习进度</span><span>›</span></div>
+        <div class="menu-item" onclick="showToast('即将上线')"><span class="mi-left"><span class="mi-icon">ℹ️</span>关于数媒艺路</span><span>›</span></div>
+      </div>
+    </div>`;
+}
+
+// ============================
+// HELPERS
+// ============================
+function toggleGlossary(i) {
+  document.getElementById('gl-'+i)?.classList.toggle('expanded');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  // Start on splash
+});
+</script>
+
+</body>
+</html>
